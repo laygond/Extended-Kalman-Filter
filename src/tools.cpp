@@ -71,7 +71,6 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
 VectorXd Tools::RadarCart2Polar(const VectorXd& x_state) {
   VectorXd xp_state(3);             //polar state
-  float max_speed_object = 1000000; // meter/sec
    // recover state parameters
   float px = x_state(0);
   float py = x_state(1);
@@ -80,9 +79,15 @@ VectorXd Tools::RadarCart2Polar(const VectorXd& x_state) {
 
   // calculate and check division by zero
   float ro     = sqrt(pow(px,2)+pow(py,2));
-  float theta  = (px<0.000001) ? 0 : atan2(py,px);
-  float ro_dot = (ro<0.000001) ? max_speed_object : ((px*vx+py*vy)/ro);
+  if (ro<0.00001){ // make ´ro´ greater again
+    px += .001;    // this also prevents atan2 from blowing up
+    py += .001;
+    ro = sqrt(pow(px,2)+pow(py,2));
+  }
+  float theta  = atan2(py,px);
+  float ro_dot = (px*vx+py*vy)/ro;
   
+  // Feed in values
   xp_state << ro,
               theta,
               ro_dot;
@@ -91,13 +96,15 @@ VectorXd Tools::RadarCart2Polar(const VectorXd& x_state) {
 }
 
 VectorXd Tools::RadarNormalizePolar(const VectorXd& y_diff) {
-  VectorXd y_norm = y_diff;             //y difference nomalized
-  float theta = y_diff(1);
+  VectorXd y_norm = y_diff;             //y difference normalized
   
-  // normalize theta between [-pi,pi]
-  theta  = (theta < -1*M_PI) ? (theta+2*M_PI) : theta;
-  theta  = (theta > M_PI) ? (theta-2*M_PI) : theta;
-  y_norm(1) = theta;
-
+  // Normalize the angle between [-pi,pi]
+  while (y_norm(1) > M_PI) {
+    y_norm(1) -= M_PI;
+  }
+  while (y_norm(1) < -M_PI) {
+    y_norm(1) += M_PI;
+  }
+  
   return y_norm;
 }

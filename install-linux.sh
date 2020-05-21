@@ -12,6 +12,7 @@ else
   sudo apt-get install git libuv1-dev libssl-dev gcc g++ cmake make
 fi
 
+# Set up uWebSockets
 git clone https://github.com/uWebSockets/uWebSockets 
 cd uWebSockets
 git checkout e94b6e1
@@ -23,3 +24,7 @@ sudo make install
 cd ../..
 sudo ln -s /usr/lib64/libuWS.so /usr/lib/libuWS.so
 sudo rm -r uWebSockets
+
+# Set as executable build and run
+sudo chmod +x build.sh
+sudo chmod +x run.sh
